@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>opsgenie-notify</artifactId>
-    <version>1.0</version>
+    <version>1.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>OpsGenie Notifier</name>
     <description>Publish build state to OpsGenie</description>
@@ -26,7 +26,7 @@
         <connection>scm:git:ssh://github.com/sannies/jenkins-opsgenie-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/sannies/jenkins-opsgenie-plugin.git</developerConnection>
         <url>https://github.com/sannies/jenkins-opsgenie-plugin</url>
-      <tag>opsgenie-notify-1.0</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <dependencies>
