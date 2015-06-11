@@ -101,7 +101,7 @@ public class OpsGenieNotifier extends Notifier {
                         "     \"apiKey\": \"" + apiKey + "\",\n" +
                         "     \"alias\": \"" + build.getProject().getName() + "\"\n" +
                         "}'";
-                listener.getLogger().println(msg);
+                //listener.getLogger().println(msg);
                 post.setEntity(new StringEntity(msg, ContentType.APPLICATION_JSON));
                 HttpResponse res = httpclient.execute(post);
                 if (res.getStatusLine().getStatusCode() != 200) {
@@ -126,7 +126,7 @@ public class OpsGenieNotifier extends Notifier {
                         "     \"message\" : \"" + build.getProject().getFullDisplayName() + " is " + build.getResult().toString() + ". Go to " + prjUrl + " for details.\",\n" +
                         "     \"description\" : \"" + StringEscapeUtils.escapeJava(description) + "\"\n" +
                         "}";
-                listener.getLogger().println(msg);
+                //listener.getLogger().println(msg);
                 post.setEntity(new StringEntity(msg, ContentType.APPLICATION_JSON));
                 HttpResponse res = httpclient.execute(post);
                 if (res.getStatusLine().getStatusCode() != 200) {
