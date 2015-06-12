@@ -32,18 +32,23 @@ public class OpsGenieNotifier extends Notifier {
     private final static Logger LOG = Logger.getLogger(OpsGenieNotifier.class.getName());
 
     private final String apiKey;
-
-
+    private final boolean requireDoubleFail;
 
 
     @DataBoundConstructor
-    public OpsGenieNotifier(String apiKey) {
+    public OpsGenieNotifier(String apiKey, boolean requireDoubleFail) {
         super();
         this.apiKey = apiKey;
+        this.requireDoubleFail = requireDoubleFail;
     }
+
 
     public String getApiKey() {
         return apiKey;
+    }
+
+    public boolean isRequireDoubleFail() {
+        return requireDoubleFail;
     }
 
     // ~~
@@ -86,6 +91,7 @@ public class OpsGenieNotifier extends Notifier {
     private void send(AbstractBuild build, TaskListener listener) {
 
         String apiKey = getDescriptor().getApiKey();
+        boolean requireDoubleFail = getDescriptor().isRequireDoubleFail();
         if (isEmpty(apiKey)) {
             listener.error("No global API Key set");
             return;
@@ -95,7 +101,8 @@ public class OpsGenieNotifier extends Notifier {
         try {
             LOG.info("Build done: " + build.getResult().toString());
             CloseableHttpClient httpclient = HttpClients.createDefault();
-            if (build.getResult().isBetterOrEqualTo(Result.SUCCESS)) {
+            AbstractBuild previousBuild = build.getPreviousBuild();
+            if (build.getResult().equals(Result.SUCCESS) && (!requireDoubleFail || previousBuild.getResult().equals(Result.SUCCESS))) {
                 HttpPost post = new HttpPost("https://api.opsgenie.com/v1/json/alert/close");
                 String msg = "{\n" +
                         "     \"apiKey\": \"" + apiKey + "\",\n" +
@@ -109,7 +116,8 @@ public class OpsGenieNotifier extends Notifier {
                 } else {
                     listener.getLogger().println("OpsGenie 'Close Alert' API call failed: " + IOUtils.toString(res.getEntity().getContent()));
                 }
-            } else {
+            }
+            if (build.getResult().isWorseThan(Result.SUCCESS) && (!requireDoubleFail || previousBuild.getResult().isWorseThan(Result.SUCCESS))) {
                 HttpPost post = new HttpPost("https://api.opsgenie.com/v1/json/alert");
 
                 String prjUrl = Jenkins.getInstance().getRootUrl() + Util.encode(build.getUrl());
@@ -156,6 +164,7 @@ public class OpsGenieNotifier extends Notifier {
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
         private String apiKey;
+        private boolean requireDoubleFail;
 
         public DescriptorImpl() {
             super(OpsGenieNotifier.class);
@@ -175,13 +184,17 @@ public class OpsGenieNotifier extends Notifier {
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
             apiKey = formData.getString("apiKey");
-
+            requireDoubleFail = formData.getBoolean("requireDoubleFail");
             save();
             return super.configure(req, formData);
         }
 
         public String getApiKey() {
             return apiKey;
+        }
+
+        public boolean isRequireDoubleFail() {
+            return requireDoubleFail;
         }
     }
 
